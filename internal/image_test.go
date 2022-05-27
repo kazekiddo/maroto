@@ -6,12 +6,12 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/johnfercher/maroto/internal"
-	"github.com/johnfercher/maroto/internal/fpdf"
-	"github.com/johnfercher/maroto/internal/mocks"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
 	"github.com/jung-kurt/gofpdf"
+	"github.com/kazekiddo/maroto/internal"
+	"github.com/kazekiddo/maroto/internal/fpdf"
+	"github.com/kazekiddo/maroto/internal/mocks"
+	"github.com/kazekiddo/maroto/pkg/consts"
+	"github.com/kazekiddo/maroto/pkg/props"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -3,9 +3,9 @@ package internal
 import (
 	"strings"
 
-	"github.com/johnfercher/maroto/internal/fpdf"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/kazekiddo/maroto/internal/fpdf"
+	"github.com/kazekiddo/maroto/pkg/consts"
+	"github.com/kazekiddo/maroto/pkg/props"
 )
 
 // Text is the abstraction which deals of how to add text inside PDF.
