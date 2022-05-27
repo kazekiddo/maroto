@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	color "github.com/johnfercher/maroto/pkg/color"
-	consts "github.com/johnfercher/maroto/pkg/consts"
+	color "github.com/kazekiddo/maroto/pkg/color"
+	consts "github.com/kazekiddo/maroto/pkg/consts"
 
 	mock "github.com/stretchr/testify/mock"
 )

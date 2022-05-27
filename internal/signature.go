@@ -1,8 +1,8 @@
 package internal
 
 import (
-	"github.com/johnfercher/maroto/internal/fpdf"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/kazekiddo/maroto/internal/fpdf"
+	"github.com/kazekiddo/maroto/pkg/props"
 )
 
 // Signature is the abstraction which deals of how to add a signature space inside PDF.
