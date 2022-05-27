@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"strings"
-
 	"github.com/kazekiddo/maroto/internal/fpdf"
 	"github.com/kazekiddo/maroto/pkg/consts"
 	"github.com/kazekiddo/maroto/pkg/props"
@@ -29,6 +27,71 @@ func NewText(pdf fpdf.Fpdf, math Math, font Font) *text {
 	}
 }
 
+func show_strlen(s string) int {
+	sl := 0
+	rs := []rune(s)
+	for _, r := range rs {
+		rint := int(r)
+		if rint < 128 {
+			sl++
+		} else {
+			sl += 2
+		}
+	}
+	return sl
+}
+
+func show_substr(s string, l int) (string, string) {
+	if len(s) <= l {
+		return s, ""
+	}
+	sr, ss, sl, rl, rs := "", "", 0, 0, []rune(s)
+	for i, r := range rs {
+		rint := int(r)
+		if rint < 128 {
+			rl = 1
+		} else {
+			rl = 2
+		}
+
+		if sl+rl > l {
+			sr = string(rs[i:])
+			break
+		}
+		sl += rl
+		ss += string(r)
+	}
+	if ss == "" {
+		return sr, ss
+	}
+	return ss, sr
+}
+
+func (s *text) getMaxStrLen(cellWidth float64) int {
+	i := "a"
+	for {
+		if s.pdf.GetStringWidth(i) >= cellWidth-2 {
+			break
+		}
+		i += "a"
+	}
+	return show_strlen(i)
+}
+
+// 自适应宽带切割字符串
+func (s *text) splitText(cellWidth float64, unicodeText string) []string {
+	var sp []string
+	for {
+		ss, sr := show_substr(unicodeText, s.getMaxStrLen(cellWidth))
+		sp = append(sp, ss)
+		if sr == "" {
+			break
+		}
+		unicodeText = sr
+	}
+	return sp
+}
+
 // Add a text inside a cell.
 func (s *text) Add(text string, cell Cell, textProp props.Text) {
 	s.font.SetFont(textProp.Family, textProp.Style, textProp.Size)
@@ -41,15 +104,16 @@ func (s *text) Add(text string, cell Cell, textProp props.Text) {
 	fontHeight := fontSize / s.font.GetScaleFactor()
 
 	cell.Y += fontHeight
+	//cell.Y += s.pdf.GetY()
 
 	// Apply Unicode before calc spaces
 	unicodeText := s.textToUnicode(text, textProp)
 	stringWidth := s.pdf.GetStringWidth(unicodeText)
-	words := strings.Split(unicodeText, " ")
+	//words := strings.Split(unicodeText, " ")
+	words := s.splitText(cell.Width, unicodeText)
 	accumulateOffsetY := 0.0
-
 	// If should add one line
-	if stringWidth < cell.Width || textProp.Extrapolate || len(words) == 1 {
+	if stringWidth < cell.Width || textProp.Extrapolate {
 		s.addLine(textProp, cell.X, cell.Width, cell.Y, stringWidth, unicodeText)
 	} else {
 		lines := s.getLines(words, cell.Width)
@@ -69,14 +133,16 @@ func (s *text) Add(text string, cell Cell, textProp props.Text) {
 
 // GetLinesQuantity retrieve the quantity of lines which a text will occupy to avoid that text to extrapolate a cell.
 func (s *text) GetLinesQuantity(text string, textProp props.Text, colWidth float64) int {
-	translator := s.pdf.UnicodeTranslatorFromDescriptor("")
+	//translator := s.pdf.UnicodeTranslatorFromDescriptor("")
 	s.font.SetFont(textProp.Family, textProp.Style, textProp.Size)
 
 	// Apply Unicode.
-	textTranslated := translator(text)
+	//textTranslated := translator(text)
+	unicodeText := s.textToUnicode(text, textProp)
 
-	stringWidth := s.pdf.GetStringWidth(textTranslated)
-	words := strings.Split(textTranslated, " ")
+	stringWidth := s.pdf.GetStringWidth(unicodeText)
+	//words := strings.Split(textTranslated, " ")
+	words := s.splitText(colWidth, unicodeText)
 
 	// If should add one line.
 	if stringWidth < colWidth || textProp.Extrapolate || len(words) == 1 {

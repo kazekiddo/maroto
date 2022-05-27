@@ -15,6 +15,7 @@ type MarotoGridPart interface {
 	// Grid System.
 	Row(height float64, closure func())
 	Col(width uint, closure func())
+	ColWithMaxGridSum(width uint, closure func(), maxGridSum float64)
 	ColSpace(width uint)
 
 	// Helpers.
@@ -71,19 +72,23 @@ func (s *tableList) Create(header []string, contents [][]string, defaultFontFami
 	if len(prop) > 0 {
 		tableProp = prop[0]
 	}
+	maxGridSum := s.customizeMaxGridSum(tableProp.ContentProp)
+	if maxGridSum < float64(len(header)) {
+		maxGridSum = float64(len(header))
+	}
 
 	tableProp.MakeValid(header, defaultFontFamily)
-	headerHeight := s.calcLinesHeight(header, tableProp.HeaderProp, tableProp.Align)
+	headerHeight, linesHeight := s.calcLinesHeight(header, tableProp.HeaderProp, tableProp.Align)
 
 	// Draw header.
 	s.pdf.Row(headerHeight+1, func() {
 		for i, h := range header {
 			hs := h
-
-			s.pdf.Col(tableProp.HeaderProp.GridSizes[i], func() {
+			top := (headerHeight - linesHeight[i]) / 2
+			s.pdf.ColWithMaxGridSum(tableProp.HeaderProp.GridSizes[i], func() {
 				reason := hs
-				s.pdf.Text(reason, tableProp.HeaderProp.ToTextProp(tableProp.Align, 0, false, 0.0))
-			})
+				s.pdf.Text(reason, tableProp.HeaderProp.ToTextProp(tableProp.Align, top, false, 0.0))
+			}, maxGridSum)
 		}
 	})
 
@@ -94,7 +99,7 @@ func (s *tableList) Create(header []string, contents [][]string, defaultFontFami
 
 	// Draw contents.
 	for index, content := range contents {
-		contentHeight := s.calcLinesHeight(content, tableProp.ContentProp, tableProp.Align)
+		contentHeight, linesHeight := s.calcLinesHeight(content, tableProp.ContentProp, tableProp.Align)
 		contentHeightPadded := contentHeight + tableProp.VerticalContentPadding
 
 		if tableProp.AlternatedBackground != nil && index%2 == 0 {
@@ -104,10 +109,10 @@ func (s *tableList) Create(header []string, contents [][]string, defaultFontFami
 		s.pdf.Row(contentHeightPadded+1, func() {
 			for i, c := range content {
 				cs := c
-
-				s.pdf.Col(tableProp.ContentProp.GridSizes[i], func() {
-					s.pdf.Text(cs, tableProp.ContentProp.ToTextProp(tableProp.Align, tableProp.VerticalContentPadding/2.0, false, 0.0))
-				})
+				top := (contentHeight - linesHeight[i]) / 2
+				s.pdf.ColWithMaxGridSum(tableProp.ContentProp.GridSizes[i], func() {
+					s.pdf.Text(cs, tableProp.ContentProp.ToTextProp(tableProp.Align, top+tableProp.VerticalContentPadding/2.0, false, 0.0))
+				}, maxGridSum)
 			}
 		})
 
@@ -121,7 +126,21 @@ func (s *tableList) Create(header []string, contents [][]string, defaultFontFami
 	}
 }
 
-func (s *tableList) calcLinesHeight(textList []string, contentProp props.TableListContent, align consts.Align) float64 {
+func (s *tableList) customizeMaxGridSum(contentProp props.TableListContent) float64 {
+	if len(contentProp.GridSizes) == 0 {
+		return consts.MaxGridSum
+	}
+	sizeSum := 0.0
+	for _, size := range contentProp.GridSizes {
+		sizeSum += float64(size)
+	}
+	if sizeSum == consts.MaxGridSum {
+		sizeSum = consts.MaxGridSum
+	}
+	return sizeSum
+}
+
+func (s *tableList) calcLinesHeight(textList []string, contentProp props.TableListContent, align consts.Align) (float64, []float64) {
 	maxLines := 1.0
 
 	left, _, right, _ := s.pdf.GetPageMargins()
@@ -129,12 +148,16 @@ func (s *tableList) calcLinesHeight(textList []string, contentProp props.TableLi
 	usefulWidth := width - left - right
 
 	textProp := contentProp.ToTextProp(align, 0, false, 0.0)
+	maxGridSum := s.customizeMaxGridSum(contentProp)
+
+	linesHeight := make([]float64, 0, len(textList))
 
 	for i, text := range textList {
 		gridSize := float64(contentProp.GridSizes[i])
-		percentSize := gridSize / consts.MaxGridSum
+		percentSize := gridSize / maxGridSum
 		colWidth := usefulWidth * percentSize
 		qtdLines := float64(s.text.GetLinesQuantity(text, textProp, colWidth))
+		linesHeight = append(linesHeight, qtdLines)
 		if qtdLines > maxLines {
 			maxLines = qtdLines
 		}
@@ -144,6 +167,9 @@ func (s *tableList) calcLinesHeight(textList []string, contentProp props.TableLi
 
 	// Font size corrected by the scale factor from "mm" inside gofpdf f.k.
 	fontHeight := fontSize / s.font.GetScaleFactor()
+	for i, f := range linesHeight {
+		linesHeight[i] = fontHeight * f
+	}
 
-	return fontHeight * maxLines
+	return fontHeight * maxLines, linesHeight
 }

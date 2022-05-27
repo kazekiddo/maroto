@@ -48,6 +48,8 @@ type Rect struct {
 type Text struct {
 	// Top is space between the upper cell limit to the barcode, if align is not center.
 	Top float64
+	// 左边距
+	Left float64
 	// Family of the text, ex: consts.Arial, helvetica and etc.
 	Family string
 	// Style of the text, ex: consts.Normal, bold and etc.
@@ -276,6 +278,20 @@ func (s *TableListContent) ToTextProp(align consts.Align, top float64, extrapola
 	return textProp
 }
 
+func (s *TableList) customizeMaxGridSum() float64 {
+	if len(s.HeaderProp.GridSizes) == 0 {
+		return consts.MaxGridSum
+	}
+	sizeSum := 0.0
+	for _, size := range s.HeaderProp.GridSizes {
+		sizeSum += float64(size)
+	}
+	if sizeSum <= consts.MaxGridSum {
+		sizeSum = consts.MaxGridSum
+	}
+	return sizeSum
+}
+
 // MakeValid from TableList define default values for a TableList.
 func (s *TableList) MakeValid(header []string, defaultFamily string) {
 	zeroValue := 0.0
@@ -291,8 +307,13 @@ func (s *TableList) MakeValid(header []string, defaultFamily string) {
 		s.HeaderProp.Style = consts.Bold
 	}
 
+	maxGridSum := s.customizeMaxGridSum()
+	if maxGridSum < float64(len(header)) {
+		maxGridSum = float64(len(header))
+	}
+
 	if len(s.HeaderProp.GridSizes) == 0 {
-		gridSize := uint(consts.MaxGridSum / float64(len(header)))
+		gridSize := uint(maxGridSum / float64(len(header)))
 		s.HeaderProp.GridSizes = []uint{}
 
 		for range header {
@@ -317,7 +338,7 @@ func (s *TableList) MakeValid(header []string, defaultFamily string) {
 	}
 
 	if len(s.ContentProp.GridSizes) == 0 {
-		gridSize := uint(consts.MaxGridSum / float64(len(header)))
+		gridSize := uint(maxGridSum / float64(len(header)))
 		s.ContentProp.GridSizes = []uint{}
 
 		for range header {
