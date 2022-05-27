@@ -24,6 +24,7 @@ type Maroto interface {
 	// Grid System
 	Row(height float64, closure func())
 	Col(width uint, closure func())
+	ColWithMaxGridSum(width uint, closure func(), maxGridSum float64)
 	ColSpace(gridSize uint)
 
 	// Registers
@@ -417,6 +418,30 @@ func (s *PdfMaroto) Col(width uint, closure func()) {
 	s.xColOffset += s.colWidth
 }
 
+func (s *PdfMaroto) ColWithMaxGridSum(width uint, closure func(), maxGridSum float64) {
+	if maxGridSum == 0.0 {
+		maxGridSum = consts.MaxGridSum
+	}
+
+	if width == 0 {
+		width = uint(maxGridSum)
+	}
+
+	percent := float64(width) / maxGridSum
+
+	pageWidth, _ := s.Pdf.GetPageSize()
+	left, _, right, _ := s.Pdf.GetMargins()
+	widthPerCol := (pageWidth - right - left) * percent
+
+	s.colWidth = widthPerCol
+	s.createColSpace(widthPerCol)
+
+	// This closure has the components to be executed.
+	closure()
+
+	s.xColOffset += s.colWidth
+}
+
 // ColSpace create an empty column inside a row.
 func (s *PdfMaroto) ColSpace(gridSize uint) {
 	s.Col(gridSize, func() {})
@@ -442,10 +467,13 @@ func (s *PdfMaroto) Text(text string, prop ...props.Text) {
 		textProp.Top = s.rowHeight
 	}
 
+	if textProp.Left > s.colWidth {
+		textProp.Left = s.colWidth
+	}
 	cell := internal.Cell{
-		X:      s.xColOffset,
+		X:      s.xColOffset + textProp.Left,
 		Y:      s.offsetY + textProp.Top,
-		Width:  s.colWidth,
+		Width:  s.colWidth - textProp.Left,
 		Height: 0,
 	}
 
