@@ -81,6 +81,10 @@ func (s *text) getMaxStrLen(cellWidth float64) int {
 // 自适应宽带切割字符串
 func (s *text) splitText(cellWidth float64, unicodeText string) []string {
 	var sp []string
+	// 字体文件不存在，直接返回
+	if s.pdf.Err(){
+		return []string{unicodeText}
+	}
 	for {
 		ss, sr := show_substr(unicodeText, s.getMaxStrLen(cellWidth))
 		sp = append(sp, ss)
