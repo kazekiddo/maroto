@@ -67,16 +67,28 @@ func show_substr(s string, l int) (string, string) {
 	return ss, sr
 }
 
-func (s *text) getLineMaxStr(cellWidth float64, unicodeText string) (string, string) {
-	lineText := ""
-	for i, v := range unicodeText {
-		if s.pdf.GetStringWidth(lineText+string(v)) > cellWidth {
-			return lineText, string(unicodeText[i:])
+func (s *text) getOneWord(strText string) []string {
+	sl := []string{}
+	ss := ""
+	for _, r := range strText {
+		rint := int(r)
+		if rint < 128 {
+			// 英文单词按空格划分
+			if rint == 32 {
+				ss += string(r)
+				sl = append(sl, ss)
+				ss = ""
+				continue
+			}
+			ss += string(r)
 		} else {
-			lineText += string(v)
+			sl = append(sl, string(r))
 		}
 	}
-	return lineText, ""
+	if ss != "" {
+		sl = append(sl, ss)
+	}
+	return sl
 }
 
 // 自适应宽带切割字符串
@@ -86,13 +98,18 @@ func (s *text) splitText(cellWidth float64, unicodeText string) []string {
 	if s.pdf.Err() {
 		return []string{unicodeText}
 	}
-	for {
-		ss, sr := s.getLineMaxStr(cellWidth, unicodeText)
-		sp = append(sp, ss)
-		if sr == "" {
-			break
+	s2 := s.getOneWord(unicodeText)
+	lineText := ""
+	for _, v := range s2 {
+		if s.pdf.GetStringWidth(lineText+v) > cellWidth {
+			sp = append(sp, lineText)
+			lineText = v
+		} else {
+			lineText += v
 		}
-		unicodeText = sr
+	}
+	if lineText != "" {
+		sp = append(sp, lineText)
 	}
 	return sp
 }
