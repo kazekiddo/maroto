@@ -67,26 +67,27 @@ func show_substr(s string, l int) (string, string) {
 	return ss, sr
 }
 
-func (s *text) getMaxStrLen(cellWidth float64) int {
-	i := "a"
-	for {
-		if s.pdf.GetStringWidth(i) >= cellWidth-2 {
-			break
+func (s *text) getLineMaxStr(cellWidth float64, unicodeText string) (string, string) {
+	lineText := ""
+	for i, v := range unicodeText {
+		if s.pdf.GetStringWidth(lineText+string(v)) > cellWidth {
+			return lineText, string(unicodeText[i:])
+		} else {
+			lineText += string(v)
 		}
-		i += "a"
 	}
-	return show_strlen(i)
+	return lineText, ""
 }
 
 // 自适应宽带切割字符串
 func (s *text) splitText(cellWidth float64, unicodeText string) []string {
 	var sp []string
-	// 字体文件不存在，直接返回
-	if s.pdf.Err(){
+	// 字体位置不存在时，直接返回
+	if s.pdf.Err() {
 		return []string{unicodeText}
 	}
 	for {
-		ss, sr := show_substr(unicodeText, s.getMaxStrLen(cellWidth))
+		ss, sr := s.getLineMaxStr(cellWidth, unicodeText)
 		sp = append(sp, ss)
 		if sr == "" {
 			break
