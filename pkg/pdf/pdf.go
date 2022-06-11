@@ -68,6 +68,8 @@ type Maroto interface {
 	SetProtection(actionFlag byte, userPassStr, ownerPassStr string)
 	SetDefaultFontFamily(fontFamily string)
 	GetDefaultFontFamily() string
+	//
+	GetStringWidth(s string) float64
 }
 
 // PdfMaroto is the principal structure which implements Maroto abstraction.
@@ -618,6 +620,10 @@ func (s *PdfMaroto) SetDefaultFontFamily(fontFamily string) {
 // GetDefaultFontFamily allows you to get the current default font family.
 func (s *PdfMaroto) GetDefaultFontFamily() string {
 	return s.defaultFontFamily
+}
+
+func (s *PdfMaroto) GetStringWidth(s0 string) float64 {
+	return s.Pdf.GetStringWidth(s0)
 }
 
 func (s *PdfMaroto) createColSpace(actualWidthPerCol float64) {
