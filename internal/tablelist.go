@@ -116,9 +116,9 @@ func (s *tableList) Create(header []string, contents [][]string, defaultFontFami
 		if offsetY > (maxOffsetPage - contentHeight - 1 - 7) {
 			s.pdf.SetBorder(false)
 			//填充本页剩余空间
-			s.pdf.Row(maxOffsetPage-offsetY, func() {
-				s.pdf.ColSpace(0)
-			})
+			//s.pdf.Row(maxOffsetPage-offsetY, func() {
+			//	s.pdf.ColSpace(0)
+			//})
 			//
 			//s.pdf.Row(float64(headerHeight+1) , func() {
 			//	s.pdf.ColSpace(0)
