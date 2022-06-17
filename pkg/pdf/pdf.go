@@ -32,7 +32,7 @@ type Maroto interface {
 	RegisterFooter(closure func())
 
 	// Outside Col/Row Components
-	TableList(header []string, contents [][]string, prop ...props.TableList)
+	TableList(header []string, contents [][]string, prop ...props.TableList) (line int)
 	Line(spaceHeight float64, prop ...props.Line)
 
 	// Inside Col/Row Components
@@ -127,7 +127,7 @@ func NewMarotoCustomSize(orientation consts.Orientation, pageSize consts.PageSiz
 		},
 		FontDirStr: "",
 	})
-	fpdf.SetMargins(defaultLeftMargin, defaultTopMargin, defaultRightMargin)
+	fpdf.SetMargins(defaultLeftMargin, 0, defaultRightMargin)
 
 	math := internal.NewMath(fpdf)
 	font := internal.NewFont(fpdf, defaultFontSize, consts.Arial, consts.Bold)
@@ -273,8 +273,8 @@ func (s *PdfMaroto) Signature(label string, prop ...props.Font) {
 // Headers define the amount of columns from each row.
 // Headers have bold style, and localized at the top of table.
 // Contents are array of arrays. Each array is one line.
-func (s *PdfMaroto) TableList(header []string, contents [][]string, prop ...props.TableList) {
-	s.TableListHelper.Create(header, contents, s.defaultFontFamily, prop...)
+func (s *PdfMaroto) TableList(header []string, contents [][]string, prop ...props.TableList) (line int) {
+	return s.TableListHelper.Create(header, contents, s.defaultFontFamily, prop...)
 }
 
 // SetBorder enable the draw of lines in every cell.

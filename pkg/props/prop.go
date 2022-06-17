@@ -115,7 +115,8 @@ type TableList struct {
 	// the contents.
 	ContentProp TableListContent
 	// Align is the align of the text (header and content) inside the columns.
-	Align consts.Align
+	Align  consts.Align
+	Aligns []consts.Align
 	// AlternatedBackground define the background color from even rows
 	// i.e rows with index (0, 2, 4, ..., N) will have background colorized,
 	// rows with index (1, 3, 5, ..., N) will not.
@@ -344,10 +345,6 @@ func (s *TableList) MakeValid(header []string, defaultFamily string) {
 		for range header {
 			s.ContentProp.GridSizes = append(s.ContentProp.GridSizes, gridSize)
 		}
-	}
-
-	if s.HeaderContentSpace == zeroValue {
-		s.HeaderContentSpace = 4.0
 	}
 
 	if s.VerticalContentPadding < zeroValue {

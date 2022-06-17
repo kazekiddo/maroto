@@ -72,7 +72,7 @@ func (s *text) getOneWord(strText string) []string {
 	ss := ""
 	for _, r := range strText {
 		rint := int(r)
-		if rint < 128 {
+		if rint == 32 || (rint >= 65 && rint <= 90) || (rint >= 97 && rint <= 122) {
 			// 英文单词按空格划分
 			if rint == 32 {
 				ss += string(r)
