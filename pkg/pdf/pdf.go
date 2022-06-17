@@ -184,10 +184,10 @@ func (s *PdfMaroto) AddPage() {
 	_, pageHeight := s.Pdf.GetPageSize()
 	_, top, _, bottom := s.Pdf.GetMargins()
 
-	totalOffsetY := int(s.offsetY + s.footerHeight)
-	maxOffsetPage := int(pageHeight - bottom - top)
+	totalOffsetY := s.offsetY + s.footerHeight
+	maxOffsetPage := pageHeight - bottom - top
 
-	s.Row(float64(maxOffsetPage-totalOffsetY), func() {
+	s.Row(maxOffsetPage-totalOffsetY, func() {
 		s.ColSpace(uint(consts.MaxGridSum))
 	})
 }
