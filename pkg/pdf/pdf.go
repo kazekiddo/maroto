@@ -70,6 +70,7 @@ type Maroto interface {
 	GetDefaultFontFamily() string
 	//
 	GetStringWidth(s string) float64
+	SetAutoPageBreak(auto bool, margin float64)
 }
 
 // PdfMaroto is the principal structure which implements Maroto abstraction.
@@ -624,6 +625,10 @@ func (s *PdfMaroto) GetDefaultFontFamily() string {
 
 func (s *PdfMaroto) GetStringWidth(s0 string) float64 {
 	return s.Pdf.GetStringWidth(s0)
+}
+
+func (s *PdfMaroto) SetAutoPageBreak(auto bool, margin float64) {
+	s.Pdf.SetAutoPageBreak(auto, margin)
 }
 
 func (s *PdfMaroto) createColSpace(actualWidthPerCol float64) {
